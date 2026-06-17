@@ -1,0 +1,1 @@
+# index.htmlfile-C-Users-Dell-Downloads-kade_odat_parite_70_20_10.html-
