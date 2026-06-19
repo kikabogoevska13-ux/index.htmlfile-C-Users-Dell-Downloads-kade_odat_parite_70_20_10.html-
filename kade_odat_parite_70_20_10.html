@@ -1,0 +1,72 @@
+
+<h2 class="sr-only">Каде одат моите пари — калкулатор со 70/20/10 поделба</h2>
+
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+  <label style="font-size:14px; color:var(--color-text-secondary); white-space:nowrap;">Месечна плата (ден.)</label>
+  <input type="range" id="salary" min="15000" max="80000" step="1000" value="30000" style="flex:1;">
+  <span id="salary-out" style="font-size:14px; font-weight:500; min-width:56px; text-align:right;">30.000</span>
+</div>
+
+<div id="categories" style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem;"></div>
+
+<div style="border-top:0.5px solid var(--color-border-tertiary); padding-top:1rem; display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px;" id="totals"></div>
+
+<div style="margin-top:1.5rem; display:flex; gap:10px; flex-wrap:wrap;">
+  <button onclick="sendPrompt('Дај ми повеќе детали за чекор 3: Поставување конкретна цел')">Следен чекор ↗</button>
+</div>
+
+<script>
+const cats = [
+  { label:'Кирија / сметки',    pct:35, color:'#185FA5' },
+  { label:'Храна и пијалаци',   pct:20, color:'#0F6E56' },
+  { label:'Транспорт',          pct:8,  color:'#854F0B' },
+  { label:'Забава / излези',    pct:7,  color:'#993C1D' },
+  { label:'Штедење',            pct:10, color:'#534AB7' },
+  { label:'Останато / ситници', pct:20, color:'#5F5E5A' },
+];
+
+function fmt(n){ return Math.round(n).toLocaleString('mk-MK'); }
+
+function render(){
+  const salary = parseInt(document.getElementById('salary').value);
+  document.getElementById('salary-out').textContent = fmt(salary);
+
+  const container = document.getElementById('categories');
+  container.innerHTML = '';
+  cats.forEach(c => {
+    const amount = Math.round(salary * c.pct / 100);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; gap:10px;';
+    row.innerHTML = `
+      <div style="width:160px; font-size:13px; color:var(--color-text-secondary); flex-shrink:0;">${c.label}</div>
+      <div style="flex:1; background:var(--color-background-secondary); border-radius:4px; height:22px; overflow:hidden;">
+        <div style="width:${c.pct}%; height:100%; background:${c.color}; opacity:0.75; border-radius:4px;"></div>
+      </div>
+      <div style="width:72px; text-align:right; font-size:13px; font-weight:500; color:var(--color-text-primary);">${fmt(amount)}</div>
+      <div style="width:32px; text-align:right; font-size:12px; color:var(--color-text-tertiary);">${c.pct}%</div>
+    `;
+    container.appendChild(row);
+  });
+
+  const pot  = Math.round(salary * 0.70);
+  const zel  = Math.round(salary * 0.20);
+  const sted = Math.round(salary * 0.10);
+  document.getElementById('totals').innerHTML = `
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Потреби (70%)</div>
+      <div style="font-size:20px; font-weight:500;">${fmt(pot)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Желби (20%)</div>
+      <div style="font-size:20px; font-weight:500;">${fmt(zel)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Штедење (10%)</div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-success);">${fmt(sted)} ден.</div>
+    </div>
+  `;
+}
+
+document.getElementById('salary').addEventListener('input', render);
+render();
+</script>

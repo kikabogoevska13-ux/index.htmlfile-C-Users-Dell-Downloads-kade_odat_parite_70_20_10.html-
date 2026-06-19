@@ -1,0 +1,65 @@
+
+<h2 class="sr-only">Калкулатор за штедење кон конкретна цел</h2>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:1.5rem;">
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Цел (ден.)</label>
+    <input type="range" id="goal" min="5000" max="200000" step="1000" value="60000">
+    <span id="goal-out" style="font-size:14px; font-weight:500; color:var(--color-text-primary);">60.000</span>
+  </div>
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Рок (месеци)</label>
+    <input type="range" id="months" min="1" max="36" step="1" value="12">
+    <span id="months-out" style="font-size:14px; font-weight:500; color:var(--color-text-primary);">12</span>
+  </div>
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Веќе заштедено (ден.)</label>
+    <input type="range" id="saved" min="0" max="50000" step="500" value="0">
+    <span id="saved-out" style="font-size:14px; font-weight:500; color:var(--color-text-primary);">0</span>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:1.5rem;">
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+    <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Месечно потребно</div>
+    <div id="monthly" style="font-size:22px; font-weight:500; color:var(--color-text-primary);">5.000 ден.</div>
+  </div>
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+    <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Уште потребно</div>
+    <div id="remaining" style="font-size:22px; font-weight:500; color:var(--color-text-primary);">60.000 ден.</div>
+  </div>
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+    <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Напредок</div>
+    <div id="pct-done" style="font-size:22px; font-weight:500; color:var(--color-text-success);">0%</div>
+  </div>
+</div>
+
+<div style="background:var(--color-background-secondary); border-radius:6px; height:24px; overflow:hidden; margin-bottom:1.5rem;">
+  <div id="progress-bar" style="height:100%; background:#0F6E56; width:0%; transition:width .4s; border-radius:6px;"></div>
+</div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <button onclick="sendPrompt('Дај ми повеќе детали за чекор 4: Следење на трошоците секој ден')">Чекор 4 ↗</button>
+</div>
+
+<script>
+function fmt(n){ return Math.round(n).toLocaleString('mk-MK'); }
+function render(){
+  const goal   = parseInt(document.getElementById('goal').value);
+  const months = parseInt(document.getElementById('months').value);
+  const saved  = parseInt(document.getElementById('saved').value);
+  const remaining = Math.max(0, goal - saved);
+  const monthly = months > 0 ? Math.ceil(remaining / months) : remaining;
+  const pct = Math.min(100, Math.round(saved / goal * 100));
+
+  document.getElementById('goal-out').textContent    = fmt(goal);
+  document.getElementById('months-out').textContent  = months;
+  document.getElementById('saved-out').textContent   = fmt(saved);
+  document.getElementById('monthly').textContent     = fmt(monthly) + ' ден.';
+  document.getElementById('remaining').textContent   = fmt(remaining) + ' ден.';
+  document.getElementById('pct-done').textContent    = pct + '%';
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+['goal','months','saved'].forEach(id => document.getElementById(id).addEventListener('input', render));
+render();
+</script>

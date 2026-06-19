@@ -1,0 +1,84 @@
+
+<h2 class="sr-only">Дневник за следење на трошоци</h2>
+
+<div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+  <input type="text" id="desc" placeholder="Опис (пр. кафе)" style="flex:2; min-width:120px;">
+  <select id="cat" style="flex:1; min-width:110px;">
+    <option value="Потреби">Потреби</option>
+    <option value="Желби" selected>Желби</option>
+    <option value="Останато">Останато</option>
+  </select>
+  <input type="number" id="amt" placeholder="Износ" min="1" style="flex:1; min-width:90px;">
+  <button onclick="addEntry()" style="flex-shrink:0;">Додај +</button>
+</div>
+
+<div id="list" style="display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; min-height:40px;"></div>
+
+<div style="border-top:0.5px solid var(--color-border-tertiary); padding-top:1rem; display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:1.5rem;" id="summary"></div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <button onclick="clearAll()">Исчисти се</button>
+  <button onclick="sendPrompt('Дај ми повеќе детали за чекор 5: Прилагодување и повторување на буџетот')">Чекор 5 ↗</button>
+</div>
+
+<script>
+const colors = { 'Потреби':'#185FA5', 'Желби':'#993C1D', 'Останато':'#5F5E5A' };
+let entries = [];
+
+function fmt(n){ return Math.round(n).toLocaleString('mk-MK'); }
+
+function addEntry(){
+  const desc = document.getElementById('desc').value.trim();
+  const cat  = document.getElementById('cat').value;
+  const amt  = parseFloat(document.getElementById('amt').value);
+  if(!desc || !amt || amt <= 0) return;
+  entries.push({ desc, cat, amt });
+  document.getElementById('desc').value = '';
+  document.getElementById('amt').value  = '';
+  renderList();
+}
+
+function removeEntry(i){
+  entries.splice(i, 1);
+  renderList();
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  if(entries.length === 0){
+    list.innerHTML = '<div style="font-size:13px; color:var(--color-text-tertiary); padding:8px 0;">Нема внесени трошоци.</div>';
+  } else {
+    list.innerHTML = entries.map((e,i) => `
+      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--color-background-secondary); border-radius:var(--border-radius-md);">
+        <div style="width:8px;height:8px;border-radius:50%;background:${colors[e.cat]};flex-shrink:0;"></div>
+        <span style="flex:1; font-size:13px; color:var(--color-text-primary);">${e.desc}</span>
+        <span style="font-size:12px; color:var(--color-text-secondary);">${e.cat}</span>
+        <span style="font-size:13px; font-weight:500; color:var(--color-text-primary); min-width:60px; text-align:right;">${fmt(e.amt)} ден.</span>
+        <button onclick="removeEntry(${i})" style="font-size:12px; padding:2px 8px; border-radius:4px;">x</button>
+      </div>
+    `).join('');
+  }
+
+  const totals = {};
+  let grand = 0;
+  entries.forEach(e => { totals[e.cat] = (totals[e.cat]||0) + e.amt; grand += e.amt; });
+
+  document.getElementById('summary').innerHTML = `
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Вкупно потрошено</div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-primary);">${fmt(grand)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Потреби</div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-primary);">${fmt(totals['Потреби']||0)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Желби</div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-primary);">${fmt(totals['Желби']||0)} ден.</div>
+    </div>
+  `;
+}
+
+function clearAll(){ entries = []; renderList(); }
+renderList();
+</script>

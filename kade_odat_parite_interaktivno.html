@@ -1,0 +1,81 @@
+
+<style>
+  @keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .bar-fill { transform-origin: left; animation: barGrow 0.5s ease forwards; }
+</style>
+
+<h2 class="sr-only">Интерактивен калкулатор: каде одат моите пари?</h2>
+
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+  <label style="font-size:14px; color:var(--color-text-secondary); white-space:nowrap;">Месечна плата (ден.)</label>
+  <input type="range" id="salary" min="15000" max="80000" step="1000" value="30000" style="flex:1;">
+  <span id="salary-out" style="font-size:14px; font-weight:500; min-width:56px; text-align:right;">30.000</span>
+</div>
+
+<div id="categories" style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem;"></div>
+
+<div style="border-top:0.5px solid var(--color-border-tertiary); padding-top:1rem; display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px;" id="totals"></div>
+
+<div style="margin-top:1.5rem; display:flex; gap:10px; flex-wrap:wrap;">
+  <button onclick="sendPrompt('Објасни ми го правилото 50/30/20 за буџетирање')">Следен чекор: 50/30/20 ↗</button>
+  <button onclick="sendPrompt('Дај ми совети за намалување на трошоците за храна и кафе')">Совети за намалување ↗</button>
+</div>
+
+<script>
+const cats = [
+  { id:'kirija',  label:'Кирија / сметки',   pct:35, color:'#185FA5' },
+  { id:'hrana',   label:'Храна и пијалаци',   pct:20, color:'#0F6E56' },
+  { id:'transport', label:'Транспорт',         pct:10, color:'#854F0B' },
+  { id:'zabava',  label:'Забава / излези',     pct:12, color:'#993C1D' },
+  { id:'stedenje', label:'Штедење',            pct:10, color:'#534AB7' },
+  { id:'ostanato', label:'Останато / ситници', pct:13, color:'#5F5E5A' },
+];
+
+function fmt(n) { return Math.round(n).toLocaleString('mk-MK'); }
+
+function render() {
+  const salary = parseInt(document.getElementById('salary').value);
+  document.getElementById('salary-out').textContent = fmt(salary);
+
+  const container = document.getElementById('categories');
+  container.innerHTML = '';
+
+  cats.forEach(c => {
+    const amount = Math.round(salary * c.pct / 100);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; gap:10px;';
+
+    row.innerHTML = `
+      <div style="width:160px; font-size:13px; color:var(--color-text-secondary); flex-shrink:0;">${c.label}</div>
+      <div style="flex:1; background:var(--color-background-secondary); border-radius:4px; height:22px; overflow:hidden; position:relative;">
+        <div class="bar-fill" style="width:${c.pct}%; height:100%; background:${c.color}; opacity:0.75; border-radius:4px;"></div>
+      </div>
+      <div style="width:72px; text-align:right; font-size:13px; font-weight:500; color:var(--color-text-primary);">${fmt(amount)}</div>
+      <div style="width:32px; text-align:right; font-size:12px; color:var(--color-text-tertiary);">${c.pct}%</div>
+    `;
+    container.appendChild(row);
+  });
+
+  const totalsEl = document.getElementById('totals');
+  const sted = Math.round(salary * 0.10);
+  const pot = Math.round(salary * 0.65);
+  const zel = Math.round(salary * 0.25);
+  totalsEl.innerHTML = `
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Потреби</div>
+      <div style="font-size:20px; font-weight:500;">${fmt(pot)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Желби</div>
+      <div style="font-size:20px; font-weight:500;">${fmt(zel)} ден.</div>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Штедење</div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-success);">${fmt(sted)} ден.</div>
+    </div>
+  `;
+}
+
+document.getElementById('salary').addEventListener('input', render);
+render();
+</script>

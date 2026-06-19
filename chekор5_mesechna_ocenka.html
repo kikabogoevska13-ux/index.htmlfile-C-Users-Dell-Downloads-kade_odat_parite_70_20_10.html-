@@ -1,0 +1,105 @@
+
+<h2 class="sr-only">Месечна оцена на буџетот — план наспроти реалност</h2>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:1.5rem;">
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Планирано — Потреби (ден.)</label>
+    <input type="range" id="p-need" min="5000" max="50000" step="500" value="24500">
+    <span id="p-need-out" style="font-size:13px; font-weight:500;">24.500</span>
+  </div>
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Реално — Потреби (ден.)</label>
+    <input type="range" id="r-need" min="5000" max="50000" step="500" value="26000">
+    <span id="r-need-out" style="font-size:13px; font-weight:500;">26.000</span>
+  </div>
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Планирано — Желби (ден.)</label>
+    <input type="range" id="p-want" min="1000" max="20000" step="500" value="7000">
+    <span id="p-want-out" style="font-size:13px; font-weight:500;">7.000</span>
+  </div>
+  <div>
+    <label style="font-size:13px; color:var(--color-text-secondary); display:block; margin-bottom:6px;">Реално — Желби (ден.)</label>
+    <input type="range" id="r-want" min="1000" max="20000" step="500" value="9500">
+    <span id="r-want-out" style="font-size:13px; font-weight:500;">9.500</span>
+  </div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.5rem;" id="compare"></div>
+
+<div id="verdict" style="border-radius:var(--border-radius-md); padding:12px 16px; font-size:13px; margin-bottom:1.5rem;"></div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <button onclick="sendPrompt('Направи ми целосна скрипта за сите 5 чекори на едукативното видео за буџетирање')">Целосна скрипта за видеото ↗</button>
+</div>
+
+<script>
+function fmt(n){ return Math.round(n).toLocaleString('mk-MK'); }
+
+const rows = [
+  { label:'Потреби', pid:'p-need', rid:'r-need', color:'#185FA5' },
+  { label:'Желби',   pid:'p-want', rid:'r-want', color:'#993C1D' },
+];
+
+function render(){
+  rows.forEach(r => {
+    document.getElementById(r.pid+'-out').textContent = fmt(parseInt(document.getElementById(r.pid).value));
+    document.getElementById(r.rid+'-out').textContent = fmt(parseInt(document.getElementById(r.rid).value));
+  });
+
+  const compare = document.getElementById('compare');
+  compare.innerHTML = '';
+  let totalOver = 0;
+
+  rows.forEach(r => {
+    const plan = parseInt(document.getElementById(r.pid).value);
+    const real = parseInt(document.getElementById(r.rid).value);
+    const diff = real - plan;
+    totalOver += diff;
+    const maxVal = Math.max(plan, real);
+    const planW = Math.round(plan / maxVal * 100);
+    const realW = Math.round(real / maxVal * 100);
+    const diffText = diff > 0 ? '+' + fmt(diff) + ' повеќе' : diff < 0 ? fmt(Math.abs(diff)) + ' помалку' : 'точно';
+    const diffColor = diff > 0 ? 'var(--color-text-danger)' : diff < 0 ? 'var(--color-text-success)' : 'var(--color-text-secondary)';
+
+    const block = document.createElement('div');
+    block.innerHTML = `
+      <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:4px;">${r.label}</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+        <span style="font-size:11px; color:var(--color-text-tertiary); width:52px;">Планирано</span>
+        <div style="flex:1; background:var(--color-background-secondary); border-radius:4px; height:16px; overflow:hidden;">
+          <div style="width:${planW}%; height:100%; background:${r.color}; opacity:0.4; border-radius:4px;"></div>
+        </div>
+        <span style="font-size:12px; font-weight:500; min-width:60px; text-align:right; color:var(--color-text-primary);">${fmt(plan)}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px; color:var(--color-text-tertiary); width:52px;">Реално</span>
+        <div style="flex:1; background:var(--color-background-secondary); border-radius:4px; height:16px; overflow:hidden;">
+          <div style="width:${realW}%; height:100%; background:${r.color}; opacity:0.85; border-radius:4px;"></div>
+        </div>
+        <span style="font-size:12px; font-weight:500; min-width:60px; text-align:right; color:${diffColor};">${fmt(real)} (${diffText})</span>
+      </div>
+    `;
+    compare.appendChild(block);
+  });
+
+  const v = document.getElementById('verdict');
+  if(totalOver > 2000){
+    v.style.background = 'var(--color-background-danger)';
+    v.style.color = 'var(--color-text-danger)';
+    v.textContent = 'Потрошивте ' + fmt(totalOver) + ' ден. повеќе од планот. Разгледај каде да намалиш следниот месец.';
+  } else if(totalOver < -2000){
+    v.style.background = 'var(--color-background-success)';
+    v.style.color = 'var(--color-text-success)';
+    v.textContent = 'Одлично! Заштедивте ' + fmt(Math.abs(totalOver)) + ' ден. повеќе од планот. Префрли ги кон целта!';
+  } else {
+    v.style.background = 'var(--color-background-secondary)';
+    v.style.color = 'var(--color-text-secondary)';
+    v.textContent = 'Буџетот е во ред. Мали отстапувања се нормални — продолжи така!';
+  }
+}
+
+['p-need','r-need','p-want','r-want'].forEach(id =>
+  document.getElementById(id).addEventListener('input', render)
+);
+render();
+</script>
